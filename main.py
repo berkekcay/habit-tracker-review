@@ -96,10 +96,11 @@ def today() -> date:
 
 
 def compute_streak(days: list[str], as_of: date) -> int:
-    """Count consecutive check-in days ending at ``as_of``.
+    """Count the current run of consecutive check-in days, up to and including ``as_of``.
 
-    Duplicate days count once. Days that are not valid ISO dates are ignored.
-    If there is no check-in on ``as_of`` itself, the streak is 0.
+    A run that ends yesterday is still current: the day isn't over, so no check-in yet
+    today doesn't break it. A missed yesterday does. Duplicate days count once, days after
+    ``as_of`` are ignored, and days that are not valid ISO dates are skipped.
     """
     checked = set()
     for raw in days:
@@ -109,7 +110,7 @@ def compute_streak(days: list[str], as_of: date) -> int:
             continue
 
     streak = 0
-    current = as_of
+    current = as_of if as_of in checked else as_of - timedelta(days=1)
     while current in checked:
         streak += 1
         current -= timedelta(days=1)

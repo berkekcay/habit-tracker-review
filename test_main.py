@@ -49,8 +49,17 @@ def test_compute_streak_counts_run_ending_today():
     assert compute_streak(days, TODAY) == 3
 
 
-def test_compute_streak_zero_without_checkin_today():
-    assert compute_streak(["2026-09-20", "2026-09-21"], TODAY) == 0
+def test_compute_streak_still_current_before_todays_checkin():
+    assert compute_streak(["2026-09-20", "2026-09-21"], TODAY) == 2
+
+
+def test_compute_streak_zero_after_a_missed_day():
+    assert compute_streak(["2026-09-19", "2026-09-20"], TODAY) == 0
+
+
+def test_compute_streak_counts_today_once_it_is_checked():
+    days = ["2026-09-20", "2026-09-21"]
+    assert compute_streak(days + ["2026-09-22"], TODAY) == compute_streak(days, TODAY) + 1
 
 
 def test_compute_streak_stops_at_gap():
@@ -94,3 +103,4 @@ def test_streak_endpoint_only_counts_own_habit(monkeypatch):
 def test_streak_unknown_habit_404():
     r = client.get("/habits/99999/streak")
     assert r.status_code == 404
+    assert r.json() == {"detail": "unknown habit"}
