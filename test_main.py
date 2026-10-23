@@ -25,3 +25,8 @@ def test_checkin_flow():
 def test_checkin_unknown_habit_404():
     r = client.post("/habits/99999/checkin", json={"day": "2026-09-22"})
     assert r.status_code == 404
+
+
+def test_guardrail_demo_must_fail():
+    # Deliberately wrong expectation to show CI fails on a failing test.
+    assert client.get("/habits").status_code == 500
