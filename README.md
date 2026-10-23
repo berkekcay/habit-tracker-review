@@ -20,3 +20,13 @@ uvicorn main:app --reload   # http://localhost:8000  (docs at /docs)
 - `main.py` — the app
 - `test_main.py` — pytest suite
 - `docs/TASKS.md` — the two features to implement
+
+## Guardrails
+
+```bash
+pip install -r requirements-dev.txt
+black --check . && ruff check . && pytest
+```
+
+CI (`.github/workflows/ci.yml`) runs the same checks on every push and pull request. See
+`writeup.md` for the two feature PRs and the review comparison.
