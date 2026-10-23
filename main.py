@@ -10,12 +10,15 @@ Test:
     pytest
 """
 
+import re
 import sqlite3
 from contextlib import closing
+from datetime import date
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+from pydantic_core import PydanticCustomError
 
 DB_PATH = Path(__file__).parent / "habits.db"
 
@@ -46,12 +49,44 @@ def init_db() -> None:
 init_db()
 
 
+# Strict YYYY-MM-DD. date.fromisoformat alone also accepts forms like "20260922".
+DAY_PATTERN = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+MAX_NAME_LENGTH = 100
+
+
 class HabitIn(BaseModel):
     name: str
+
+    @field_validator("name")
+    @classmethod
+    def name_not_blank(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise PydanticCustomError("blank_name", "habit name must not be empty")
+        if len(value) > MAX_NAME_LENGTH:
+            raise PydanticCustomError(
+                "name_too_long", f"habit name must be at most {MAX_NAME_LENGTH} characters"
+            )
+        return value
 
 
 class CheckinIn(BaseModel):
     day: str  # ISO date, e.g. "2026-09-22"
+
+    @field_validator("day")
+    @classmethod
+    def day_is_iso_date(cls, value: str) -> str:
+        if not DAY_PATTERN.fullmatch(value):
+            raise PydanticCustomError(
+                "bad_day_format", "day must be an ISO date in YYYY-MM-DD format"
+            )
+        try:
+            date.fromisoformat(value)
+        except ValueError:
+            raise PydanticCustomError(
+                "impossible_day", "day {day} is not a real calendar date", {"day": value}
+            ) from None
+        return value
 
 
 @app.post("/habits")
