@@ -15,7 +15,7 @@ uvicorn main:app --reload   # http://localhost:8000  (docs at /docs)
 - `GET /habits`
 - `POST /habits/{id}/checkin` `{ "day": "2026-09-22" }`
 - `GET /habits/{id}/checkins`
-- `GET /habits/{id}/streak` (consecutive check-in days ending today)
+- `GET /habits/{id}/streak` (consecutive check-in days ending today, or yesterday if there is no check-in today yet)
 
 ## Files
 - `main.py` — the app
